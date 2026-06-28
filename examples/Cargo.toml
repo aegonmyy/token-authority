@@ -1,0 +1,18 @@
+[package]
+name    = "token-authority-examples"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "fixed_supply"
+path = "src/bin/fixed_supply.rs"
+
+[[bin]]
+name = "variable_supply"
+path = "src/bin/variable_supply.rs"
+
+[dependencies]
+token_authority_sdk  = { workspace = true }
+token_authority_core = { workspace = true }
+admin_authority      = { workspace = true }
