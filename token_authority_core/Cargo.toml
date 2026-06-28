@@ -1,0 +1,10 @@
+[package]
+name    = "token_authority_core"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+borsh        = { workspace = true }
+serde        = { workspace = true }
+admin_authority = { workspace = true }
