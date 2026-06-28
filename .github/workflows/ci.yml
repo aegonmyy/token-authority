@@ -1,0 +1,78 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: "1"
+
+jobs:
+  # ── Core workspace (admin_authority, token_authority_core, sdk, examples) ───
+  test:
+    name: test (workspace — 44 tests)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-
+
+      - name: cargo check
+        run: cargo check --workspace --exclude token-authority-guest
+
+      - name: cargo test (44 tests expected)
+        run: cargo test --workspace --exclude token-authority-guest
+
+      - name: Run fixed_supply example
+        run: cargo run --bin fixed_supply
+
+      - name: Run variable_supply example
+        run: cargo run --bin variable_supply
+
+      - name: Verify 0 warnings
+        run: |
+          cargo check --workspace --exclude token-authority-guest 2>&1 | tee /tmp/check.log
+          if grep -q "^warning" /tmp/check.log; then
+            echo "Warnings found — failing CI"
+            exit 1
+          fi
+
+  # ── Guest program compile check (riscv32im — no RISC0 execution) ────────────
+  guest-check:
+    name: cargo check (guest — riscv32im)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust stable + riscv32im target
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: riscv32im-unknown-none-elf
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            methods/guest/target
+          key: ${{ runner.os }}-guest-${{ hashFiles('methods/guest/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-guest-
+
+      - name: cargo check (guest)
+        working-directory: methods/guest
+        run: cargo check --target riscv32im-unknown-none-elf
