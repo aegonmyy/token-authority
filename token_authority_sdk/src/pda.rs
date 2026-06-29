@@ -1,15 +1,12 @@
-//! PDA seed constants — must stay in sync with the guest program.
+//! Seed constants and deterministic id derivation for the simulated ledger.
 
-/// Seed for the token-definition account (`TokenDef`).
-pub const TOKEN_DEF_SEED: &[u8] = b"token_def";
+pub const TOKEN_DEF_SEED:  &[u8] = b"token_def";
+pub const MINT_AUTH_SEED:  &[u8] = b"mint_auth";
 
-/// Seed for the mint-authority config account (`AdminConfig`).
-pub const MINT_AUTH_SEED: &[u8] = b"mint_auth";
-
-/// Derive a fake in-process "account id" by hashing seeds with a program id.
+/// Derive a stable in-process account id for simulation tests.
 ///
-/// Real LEZ PDA derivation is done by the runtime; this helper exists only for
-/// local simulation tests where we need a stable, deterministic id.
+/// The real LEZ runtime handles account id derivation; this exists only for
+/// `SimulatedLedger` where we need deterministic ids without a network.
 pub fn derive_pda_id(program_id: &[u8; 32], seeds: &[&[u8]]) -> [u8; 32] {
     use std::collections::hash_map::DefaultHasher;
     use std::hash::{Hash, Hasher};

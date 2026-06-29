@@ -1,12 +1,3 @@
-//! Pure-Rust simulated ledger for testing token flows without a RISC-Zero
-//! prover or a live LEZ network.
-//!
-//! All state lives in memory. PDA accounts are identified by deterministic
-//! hashes. Holdings are keyed by holder account id.
-//!
-//! This module is intentionally self-contained and dependency-light so it can
-//! run in any environment (CI, local tests, Windows, no RISC-Zero toolchain).
-
 use std::collections::HashMap;
 
 use thiserror::Error;
@@ -15,8 +6,6 @@ use admin_authority::{AdminConfig, AdminError, require_admin, transfer_admin, re
 use token_authority_core::{TokenDef, TokenHolding};
 
 use crate::pda::{TOKEN_DEF_SEED, derive_pda_id};
-
-// ── Errors ────────────────────────────────────────────────────────────────────
 
 #[derive(Debug, Error, PartialEq, Eq)]
 pub enum SimError {
@@ -39,16 +28,11 @@ pub enum SimError {
     InvalidArg(&'static str),
 }
 
-// ── SimulatedLedger ───────────────────────────────────────────────────────────
-
-/// In-memory ledger that mirrors the on-chain token program state.
-///
-/// One ledger = one token program deployment (one `token_def` + one `mint_auth`).
+/// In-memory ledger mirroring the on-chain token program for testing.
 pub struct SimulatedLedger {
     program_id:  [u8; 32],
     token_def:   Option<TokenDef>,
     mint_auth:   Option<AdminConfig>,
-    /// Balances keyed by holder account id.
     holdings:    HashMap<[u8; 32], TokenHolding>,
 }
 
@@ -70,8 +54,6 @@ impl SimulatedLedger {
         derive_pda_id(&self.program_id, &[TOKEN_DEF_SEED])
     }
 
-    // ── Read helpers ──────────────────────────────────────────────────────
-
     pub fn token_def(&self) -> Option<&TokenDef> {
         self.token_def.as_ref()
     }
@@ -88,11 +70,6 @@ impl SimulatedLedger {
         self.token_def.as_ref().map(|d| d.total_supply).unwrap_or(0)
     }
 
-    // ── Instructions ──────────────────────────────────────────────────────
-
-    /// `new_fungible_token` — mirrors the guest instruction.
-    ///
-    /// `creator` receives the entire `initial_supply`.
     pub fn new_fungible_token(
         &mut self,
         name: impl Into<String>,
@@ -125,7 +102,6 @@ impl SimulatedLedger {
             Some(id) => AdminConfig::new(id)?,
         };
 
-        // Credit initial supply to creator.
         let holding = TokenHolding { definition_id: self.def_id(), balance: initial_supply };
         self.holdings.insert(creator, holding);
 
@@ -134,7 +110,6 @@ impl SimulatedLedger {
         Ok(())
     }
 
-    /// `mint_tokens` — only the current mint authority may call this.
     pub fn mint_tokens(
         &mut self,
         authority: &[u8; 32],
@@ -156,7 +131,6 @@ impl SimulatedLedger {
         Ok(())
     }
 
-    /// `transfer_tokens` — any holder may transfer their own tokens.
     pub fn transfer_tokens(
         &mut self,
         sender: [u8; 32],
@@ -166,11 +140,7 @@ impl SimulatedLedger {
         if amount == 0 {
             return Err(SimError::InvalidArg("amount must be > 0"));
         }
-        let sender_balance = self
-            .holdings
-            .get(&sender)
-            .map(|h| h.balance)
-            .unwrap_or(0);
+        let sender_balance = self.holdings.get(&sender).map(|h| h.balance).unwrap_or(0);
         if sender_balance < amount {
             return Err(SimError::InsufficientFunds);
         }
@@ -181,7 +151,6 @@ impl SimulatedLedger {
         Ok(())
     }
 
-    /// `burn_tokens` — any holder may burn their own tokens.
     pub fn burn_tokens(
         &mut self,
         holder: [u8; 32],
@@ -201,7 +170,6 @@ impl SimulatedLedger {
         Ok(())
     }
 
-    /// `rotate_authority` — transfer mint authority to a new account.
     pub fn rotate_authority(
         &mut self,
         current_authority: &[u8; 32],
@@ -216,7 +184,6 @@ impl SimulatedLedger {
         Ok(())
     }
 
-    /// `revoke_authority` — permanently fix the supply (irreversible).
     pub fn revoke_authority(&mut self, current_authority: &[u8; 32]) -> Result<(), SimError> {
         let auth_cfg = self.mint_auth.as_ref().ok_or(SimError::NotInitialised)?;
         let new_cfg = revoke_admin(auth_cfg, current_authority)?;
@@ -233,8 +200,6 @@ impl Default for SimulatedLedger {
         Self::new()
     }
 }
-
-// ── Tests ─────────────────────────────────────────────────────────────────────
 
 #[cfg(test)]
 mod tests {
@@ -255,8 +220,6 @@ mod tests {
         l.new_fungible_token("VAR", 6, 500, Some(ALICE), ALICE).unwrap();
         l
     }
-
-    // ── new_fungible_token ────────────────────────────────────────────────
 
     #[test]
     fn creates_token_and_credits_creator() {
@@ -293,8 +256,6 @@ mod tests {
         ));
     }
 
-    // ── mint_tokens ───────────────────────────────────────────────────────
-
     #[test]
     fn authority_can_mint() {
         let mut l = variable_supply_ledger();
@@ -315,15 +276,13 @@ mod tests {
         assert!(matches!(l.mint_tokens(&ALICE, ALICE, 1), Err(SimError::Admin(_))));
     }
 
-    // ── transfer_tokens ───────────────────────────────────────────────────
-
     #[test]
     fn transfer_moves_balance() {
         let mut l = fixed_supply_ledger();
         l.transfer_tokens(ALICE, BOB, 300).unwrap();
         assert_eq!(l.balance_of(&ALICE), 700);
         assert_eq!(l.balance_of(&BOB), 300);
-        assert_eq!(l.total_supply(), 1_000); // unchanged
+        assert_eq!(l.total_supply(), 1_000);
     }
 
     #[test]
@@ -331,8 +290,6 @@ mod tests {
         let mut l = fixed_supply_ledger();
         assert_eq!(l.transfer_tokens(BOB, ALICE, 1), Err(SimError::InsufficientFunds));
     }
-
-    // ── burn_tokens ───────────────────────────────────────────────────────
 
     #[test]
     fn burn_reduces_supply_and_balance() {
@@ -348,22 +305,16 @@ mod tests {
         assert_eq!(l.burn_tokens(ALICE, 9_999), Err(SimError::InsufficientFunds));
     }
 
-    // ── rotate_authority ──────────────────────────────────────────────────
-
     #[test]
     fn rotate_transfers_mint_right() {
         let mut l = variable_supply_ledger();
         l.rotate_authority(&ALICE, BOB).unwrap();
 
         assert_eq!(l.token_def().unwrap().mint_authority, Some(BOB));
-        // old authority can no longer mint
         assert!(matches!(l.mint_tokens(&ALICE, CAROL, 1), Err(SimError::Admin(_))));
-        // new authority can mint
         l.mint_tokens(&BOB, CAROL, 50).unwrap();
         assert_eq!(l.balance_of(&CAROL), 50);
     }
-
-    // ── revoke_authority ──────────────────────────────────────────────────
 
     #[test]
     fn revoke_fixes_supply() {
@@ -381,38 +332,29 @@ mod tests {
         assert!(matches!(l.revoke_authority(&ALICE), Err(SimError::Admin(_))));
     }
 
-    // ── full lifecycle ────────────────────────────────────────────────────
-
     #[test]
     fn variable_supply_full_lifecycle() {
         let mut l = SimulatedLedger::new();
 
-        // 1. Create token with ALICE as authority; all supply goes to ALICE.
         l.new_fungible_token("LOGOS", 6, 1_000_000, Some(ALICE), ALICE).unwrap();
         assert_eq!(l.total_supply(), 1_000_000);
 
-        // 2. ALICE distributes via transfer.
         l.transfer_tokens(ALICE, BOB,   300_000).unwrap();
         l.transfer_tokens(ALICE, CAROL, 200_000).unwrap();
 
-        // 3. ALICE mints a bonus round.
         l.mint_tokens(&ALICE, BOB, 50_000).unwrap();
         assert_eq!(l.total_supply(), 1_050_000);
 
-        // 4. BOB burns some tokens.
         l.burn_tokens(BOB, 25_000).unwrap();
         assert_eq!(l.total_supply(), 1_025_000);
 
-        // 5. ALICE hands authority to CAROL.
         l.rotate_authority(&ALICE, CAROL).unwrap();
         assert!(matches!(l.mint_tokens(&ALICE, BOB, 1), Err(SimError::Admin(_))));
 
-        // 6. CAROL mints a little, then permanently locks supply.
         l.mint_tokens(&CAROL, CAROL, 5_000).unwrap();
         l.revoke_authority(&CAROL).unwrap();
         assert!(matches!(l.mint_tokens(&CAROL, CAROL, 1), Err(SimError::Admin(_))));
 
-        // Final supply is deterministic.
         assert_eq!(l.total_supply(), 1_030_000);
     }
 }

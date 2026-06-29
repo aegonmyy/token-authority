@@ -1,12 +1,5 @@
-//! Shared types for the token-authority SPEL program.
-//!
-//! `TokenDef` extends the base LEZ token definition with a `mint_authority`
-//! field controlled via the `admin_authority` RFP-001 library.
-
 use borsh::{BorshDeserialize, BorshSerialize};
 use serde::{Deserialize, Serialize};
-
-// ── Error codes (20xx namespace) ─────────────────────────────────────────────
 
 pub const E_SUPPLY_OVERFLOW:    u32 = 2001;
 pub const E_BALANCE_OVERFLOW:   u32 = 2002;
@@ -16,13 +9,7 @@ pub const E_WRONG_DEFINITION:   u32 = 2005;
 pub const E_ZERO_AMOUNT:        u32 = 2006;
 pub const E_INSUFFICIENT_FUNDS: u32 = 2007;
 
-// ── TokenDef ─────────────────────────────────────────────────────────────────
-
-/// On-chain fungible token definition.
-///
-/// `mint_authority == None` means supply is permanently fixed.
-/// The authority is managed via the `admin_authority` library (RFP-001):
-/// the config PDA is seeded `[b"mint_auth", definition_id]`.
+/// On-chain fungible token definition. `mint_authority == None` means supply is fixed.
 #[derive(
     Debug, Clone, PartialEq, Eq,
     Serialize, Deserialize,
@@ -32,8 +19,6 @@ pub struct TokenDef {
     pub name:           String,
     pub decimals:       u8,
     pub total_supply:   u128,
-    /// `None` = fixed supply (authority permanently revoked).
-    /// `Some(id)` = the account that may mint additional tokens.
     pub mint_authority: Option<[u8; 32]>,
 }
 
@@ -47,8 +32,6 @@ impl TokenDef {
     }
 }
 
-// ── TokenHolding ─────────────────────────────────────────────────────────────
-
 /// Per-holder balance account for a fungible token.
 #[derive(
     Debug, Clone, PartialEq, Eq,
@@ -56,7 +39,6 @@ impl TokenDef {
     BorshSerialize, BorshDeserialize,
 )]
 pub struct TokenHolding {
-    /// Account id of the `TokenDef` this holding belongs to.
     pub definition_id: [u8; 32],
     pub balance:       u128,
 }
@@ -75,9 +57,6 @@ impl TokenHolding {
     }
 }
 
-// ── Pure state-transition helpers (no SPEL/LEZ deps) ─────────────────────────
-
-/// Apply a mint: increase holder balance and total supply.
 pub fn apply_mint(
     def: &TokenDef,
     holding: &TokenHolding,
@@ -107,7 +86,6 @@ pub fn apply_mint(
     Ok((new_def, new_holding))
 }
 
-/// Apply a transfer: deduct from sender, credit recipient.
 pub fn apply_transfer(
     def: &TokenDef,
     sender: &TokenHolding,
@@ -140,7 +118,6 @@ pub fn apply_transfer(
     Ok((new_sender, new_recipient))
 }
 
-/// Apply a burn: deduct from holder balance and total supply.
 pub fn apply_burn(
     def: &TokenDef,
     holding: &TokenHolding,
@@ -170,15 +147,13 @@ pub fn apply_burn(
     Ok((new_def, new_holding))
 }
 
-// Placeholder — in the real guest, definition_id comes from AccountWithMetadata.
-// Tests use a fixed sentinel so the helpers are testable without SPEL deps.
+// In the guest, definition_id comes from AccountWithMetadata.
+// Tests use this sentinel so helpers are testable without SPEL deps.
 fn def_id_placeholder(_def: &TokenDef) -> [u8; 32] {
     TEST_DEF_ID
 }
 
 pub const TEST_DEF_ID: [u8; 32] = [0xdeu8; 32];
-
-// ── Error type ───────────────────────────────────────────────────────────────
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum TokenError {
@@ -225,8 +200,6 @@ impl std::fmt::Display for TokenError {
 
 impl std::error::Error for TokenError {}
 
-// ── Tests ────────────────────────────────────────────────────────────────────
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -243,8 +216,6 @@ mod tests {
     fn holding(balance: u128) -> TokenHolding {
         TokenHolding { definition_id: TEST_DEF_ID, balance }
     }
-
-    // ── apply_mint ────────────────────────────────────────────────────────
 
     #[test]
     fn mint_increases_balance_and_supply() {
@@ -269,8 +240,6 @@ mod tests {
         );
     }
 
-    // ── apply_transfer ────────────────────────────────────────────────────
-
     #[test]
     fn transfer_moves_balance() {
         let (s, r) = apply_transfer(&def(100, None), &holding(80), &holding(20), 30).unwrap();
@@ -294,8 +263,6 @@ mod tests {
         );
     }
 
-    // ── apply_burn ────────────────────────────────────────────────────────
-
     #[test]
     fn burn_reduces_balance_and_supply() {
         let (new_def, new_h) = apply_burn(&def(100, None), &holding(60), 40).unwrap();
@@ -318,8 +285,6 @@ mod tests {
             Err(TokenError::ZeroAmount)
         );
     }
-
-    // ── Borsh round-trips ─────────────────────────────────────────────────
 
     #[test]
     fn tokendef_roundtrip() {
