@@ -2017,7 +2017,7 @@ checksum = "a5b0c77c1b780822bc749a33e39aeb2c07584ab93332303babeabb645298a76e"
 [[package]]
 name = "nssa_core"
 version = "0.1.0"
-source = "git+https://github.com/logos-blockchain/logos-execution-zone.git?tag=v0.1.2#cf3639d8252040d13b3d4e933feb19b42c76e14a"
+source = "git+https://github.com/logos-blockchain/logos-execution-zone.git?tag=v0.2.0-rc3#cf3639d8252040d13b3d4e933feb19b42c76e14a"
 dependencies = [
  "base58",
  "borsh",
@@ -3234,8 +3234,8 @@ dependencies = [
 
 [[package]]
 name = "spel-framework"
-version = "0.5.0"
-source = "git+https://github.com/logos-co/spel.git?rev=73fc462eb8f0a4d00f1a846437c627ec2e523f83#73fc462eb8f0a4d00f1a846437c627ec2e523f83"
+version = "0.3.0"
+source = "git+https://github.com/logos-co/spel.git?tag=v0.3.0#84f50d4aa473a70b72a16a7fb468c5618277cdd7"
 dependencies = [
  "borsh",
  "nssa_core",
@@ -3246,10 +3246,9 @@ dependencies = [
 
 [[package]]
 name = "spel-framework-core"
-version = "0.5.0"
-source = "git+https://github.com/logos-co/spel.git?rev=73fc462eb8f0a4d00f1a846437c627ec2e523f83#73fc462eb8f0a4d00f1a846437c627ec2e523f83"
+version = "0.3.0"
+source = "git+https://github.com/logos-co/spel.git?tag=v0.3.0#84f50d4aa473a70b72a16a7fb468c5618277cdd7"
 dependencies = [
- "base58",
  "borsh",
  "nssa_core",
  "proc-macro2",
@@ -3258,13 +3257,12 @@ dependencies = [
  "sha2",
  "syn 2.0.118",
  "thiserror 1.0.69",
- "toml",
 ]
 
 [[package]]
 name = "spel-framework-macros"
-version = "0.5.0"
-source = "git+https://github.com/logos-co/spel.git?rev=73fc462eb8f0a4d00f1a846437c627ec2e523f83#73fc462eb8f0a4d00f1a846437c627ec2e523f83"
+version = "0.3.0"
+source = "git+https://github.com/logos-co/spel.git?tag=v0.3.0#84f50d4aa473a70b72a16a7fb468c5618277cdd7"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -3507,8 +3505,7 @@ version = "0.1.0"
 dependencies = [
  "admin_authority",
  "borsh",
- "enum-ordinalize",
- "enum-ordinalize-derive",
+ "getrandom 0.2.17",
  "nssa_core",
  "risc0-zkvm",
  "ruint",

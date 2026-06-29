@@ -1,12 +1,14 @@
-#![no_main]
+#![cfg_attr(not(test), no_main)]
 
 use spel_framework::prelude::*;
+
+#[cfg(not(test))]
+risc0_zkvm::guest::entry!(main);
 use nssa_core::account::Data;
 
 use admin_authority::{AdminConfig, AdminError, transfer_admin, revoke_admin, require_admin};
 use token_authority_core::{TokenDef, TokenHolding};
 
-risc0_zkvm::guest::entry!(main);
 
 // ── Error helpers ─────────────────────────────────────────────────────────────
 
@@ -70,11 +72,11 @@ mod token_authority {
     ///   Pass all-zeros to launch with no mint authority (fixed supply from day one).
     #[instruction]
     pub fn new_fungible_token(
-        #[account(init, pda = [literal("token_def")])]
+        #[account(init, signer)]
         mut def_acc: AccountWithMetadata,
-        #[account(init, pda = [literal("mint_auth")])]
+        #[account(init, signer)]
         mut auth_acc: AccountWithMetadata,
-        #[account(mut)]
+        #[account(init, signer)]
         mut creator_holding: AccountWithMetadata,
         #[account(signer)]
         creator: AccountWithMetadata,
@@ -153,9 +155,9 @@ mod token_authority {
     /// Only callable by the current mint authority. Fails if authority is revoked.
     #[instruction]
     pub fn mint_tokens(
-        #[account(mut, pda = [literal("token_def")])]
+        #[account(mut)]
         mut def_acc: AccountWithMetadata,
-        #[account(pda = [literal("mint_auth")])]
+        #[account()]
         auth_acc: AccountWithMetadata,
         #[account(mut)]
         mut recipient_holding: AccountWithMetadata,
@@ -219,7 +221,7 @@ mod token_authority {
     /// Anyone can transfer from their own holding. No authority required.
     #[instruction]
     pub fn transfer_tokens(
-        #[account(pda = [literal("token_def")])]
+        #[account()]
         def_acc: AccountWithMetadata,
         #[account(mut)]
         mut sender_holding: AccountWithMetadata,
@@ -281,7 +283,7 @@ mod token_authority {
     /// Anyone can burn their own tokens. No authority required.
     #[instruction]
     pub fn burn_tokens(
-        #[account(mut, pda = [literal("token_def")])]
+        #[account(mut)]
         mut def_acc: AccountWithMetadata,
         #[account(mut)]
         mut holder_holding: AccountWithMetadata,
@@ -332,9 +334,9 @@ mod token_authority {
     /// To permanently fix supply, call `revoke_authority` instead.
     #[instruction]
     pub fn rotate_authority(
-        #[account(mut, pda = [literal("token_def")])]
+        #[account(mut)]
         mut def_acc: AccountWithMetadata,
-        #[account(mut, pda = [literal("mint_auth")])]
+        #[account(mut)]
         mut auth_acc: AccountWithMetadata,
         #[account(signer)]
         authority: AccountWithMetadata,
@@ -373,9 +375,9 @@ mod token_authority {
     /// Only callable by the current mint authority. This action is irreversible.
     #[instruction]
     pub fn revoke_authority(
-        #[account(mut, pda = [literal("token_def")])]
+        #[account(mut)]
         mut def_acc: AccountWithMetadata,
-        #[account(mut, pda = [literal("mint_auth")])]
+        #[account(mut)]
         mut auth_acc: AccountWithMetadata,
         #[account(signer)]
         authority: AccountWithMetadata,

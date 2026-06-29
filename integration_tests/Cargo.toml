@@ -1,0 +1,13 @@
+[package]
+name = "integration_tests"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+nssa       = { git = "https://github.com/logos-blockchain/logos-execution-zone.git", tag = "v0.2.0-rc3", features = ["prove", "test-utils"] }
+nssa_core  = { git = "https://github.com/logos-blockchain/logos-execution-zone.git", tag = "v0.2.0-rc3", features = ["host"] }
+token-authority-methods = { path = "../methods" }
+admin_authority         = { path = "../admin_authority" }
+token_authority_core    = { path = "../token_authority_core" }
+borsh      = { version = "1", features = ["derive"] }
+serde      = { version = "1", features = ["derive"] }

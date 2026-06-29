@@ -10,13 +10,12 @@ name = "token_authority"
 path = "src/bin/token_authority.rs"
 
 [dependencies]
-spel-framework        = { git = "https://github.com/logos-co/spel.git", rev = "73fc462eb8f0a4d00f1a846437c627ec2e523f83" }
-nssa_core             = { git = "https://github.com/logos-blockchain/logos-execution-zone.git", tag = "v0.1.2" }
-risc0-zkvm            = { version = "=3.0.5", features = ["std"] }
+spel-framework        = { git = "https://github.com/logos-co/spel.git", tag = "v0.3.0", package = "spel-framework" }
+nssa_core             = { git = "https://github.com/logos-blockchain/logos-execution-zone.git", tag = "v0.2.0-rc3" }
+risc0-zkvm            = { version = "=3.0.5", default-features = false }
 admin_authority       = { path = "../../admin_authority" }
 token_authority_core  = { path = "../../token_authority_core" }
 borsh                 = { version = "1", features = ["derive"] }
 serde                 = { version = "1", features = ["derive"] }
 ruint                 = "=1.17.0"
-enum-ordinalize        = "=4.3.2"
-enum-ordinalize-derive = "=4.3.2"
+getrandom             = { version = "=0.2.17", features = ["custom"] }

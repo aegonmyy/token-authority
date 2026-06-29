@@ -1,0 +1,10 @@
+[package]
+name = "token-authority-methods"
+version = "0.1.0"
+edition = "2021"
+
+[build-dependencies]
+risc0-zkvm = { version = "=3.0.5", features = ["std"] }
+
+[dependencies]
+risc0-zkvm = { version = "=3.0.5", features = ["std"] }
