@@ -35,14 +35,14 @@ token-authority/
 
 | Instruction | Gate | Accounts |
 |---|---|---|
-| `new_fungible_token` | none (permissionless) | `token_def` (init PDA), `mint_auth` (init PDA), `creator_holding` (mut), `creator` (signer) |
-| `mint_tokens` | mint authority | `token_def` (mut PDA), `mint_auth` (PDA), `recipient_holding` (mut), `authority` (signer) |
-| `transfer_tokens` | sender signature | `token_def` (PDA), `sender_holding` (mut), `recipient_holding` (mut), `sender` (signer) |
-| `burn_tokens` | holder signature | `token_def` (mut PDA), `holder_holding` (mut), `holder` (signer) |
-| `rotate_authority` | current authority | `token_def` (mut PDA), `mint_auth` (mut PDA), `authority` (signer) |
-| `revoke_authority` | current authority | `token_def` (mut PDA), `mint_auth` (mut PDA), `authority` (signer) — **irreversible** |
+| `new_fungible_token` | none (permissionless) | `def_acc` (init, signer), `auth_acc` (init, signer), `creator_holding` (init, signer), `creator` (signer) |
+| `mint_tokens` | mint authority | `def_acc` (mut), `auth_acc` (read), `recipient_holding` (mut), `authority` (signer) |
+| `transfer_tokens` | sender signature | `def_acc` (read), `sender_holding` (mut), `recipient_holding` (mut), `sender` (signer) |
+| `burn_tokens` | holder signature | `def_acc` (mut), `holder_holding` (mut), `holder` (signer) |
+| `rotate_authority` | current authority | `def_acc` (mut), `auth_acc` (mut), `authority` (signer) |
+| `revoke_authority` | current authority | `def_acc` (mut), `auth_acc` (mut), `authority` (signer) — **irreversible** |
 
-PDA seeds: `token_def` = `b"token_def"`, `mint_auth` = `b"mint_auth"`.
+Account identities are signer-derived (no PDAs); each account key pair controls its own account.
 
 ---
 
@@ -68,14 +68,13 @@ cargo run --bin variable_supply   # authority lifecycle: mint → rotate → rev
 ### Run all tests
 
 ```bash
-cargo test --workspace --exclude token-authority-guest
-# 44/44 pass, 0 warnings
-```
+# Unit + simulation tests (no toolchain needed):
+cargo test --workspace --exclude token-authority-guest --exclude integration_tests
 
-Test coverage:
-- `admin_authority` — 18 tests: new, require_admin, initialize, transfer, revoke, Borsh roundtrips, full lifecycle
-- `token_authority_core` — 11 tests: mint, transfer, burn, overflow/underflow, Borsh roundtrips
-- `token_authority_sdk` — 15 sim tests + 1 doctest: all instruction paths, double-init, full lifecycle
+# Integration tests (nssa in-process sequencer, RISC0_DEV_MODE=0 = real proofs):
+RISC0_DEV_MODE=0 cargo test -p integration_tests -- --nocapture
+# 4 tests: fixed-supply mint rejection, full authority lifecycle, transfer, burn
+```
 
 ### Type-check the guest program
 
@@ -85,46 +84,75 @@ cd methods/guest && cargo check
 
 ---
 
-## On-chain deployment (requires VPS / Linux + RISC-Zero toolchain)
+## On-chain deployment (requires Linux + RISC-Zero toolchain)
 
 ### Prerequisites
 
 ```bash
-# Install Rust
+# Rust
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 
-# Install RISC-Zero toolchain
+# RISC-Zero toolchain + Docker (for guest ELF build)
 curl -L https://risczero.com/install | bash && rzup install
 
-# Install LEZ CLI
-cargo install --git https://github.com/logos-blockchain/logos-execution-zone lgs
+# System deps (for building the LEZ node)
+sudo apt-get install -y clang libclang-dev unzip python3-dev
+
+# LEZ node (sequencer + wallet CLI)
+git clone https://github.com/logos-blockchain/logos-execution-zone ~/lez-node
+cd ~/lez-node
+cargo build --release --features standalone -p sequencer_service
+cargo build --release -p wallet
 ```
 
 ### Build the guest ELF
 
+The pre-built ELF (`token_authority.bin`) is included in the repo.  
+To rebuild from source:
+
 ```bash
-cd methods/guest
-cargo +risc0 build --release --target riscv32im-risc0-zkvm-elf
-# ELF → methods/guest/target/riscv32im-risc0-zkvm-elf/release/token_authority
+# From repo root (Docker required):
+cargo risczero build --manifest-path methods/guest/Cargo.toml
+# ELF → methods/guest/target/riscv32im-risc0-zkvm-elf/docker/token_authority.bin
+sudo cp methods/guest/target/riscv32im-risc0-zkvm-elf/docker/token_authority.bin token_authority.bin
 ```
 
-### Deploy and benchmark
+### Run the end-to-end demo
 
 ```bash
-# Start local LEZ network
-lgs localnet start
+./scripts/demo.sh
+```
 
-# Deploy program (record program_id from output)
-lgs program deploy methods/guest/target/riscv32im-risc0-zkvm-elf/release/token_authority
+The script:
+1. Starts a standalone LEZ sequencer (no external chain needed)
+2. Imports the debug account and claims genesis balance
+3. Deploys `token_authority.bin` — prints the on-chain program ID
+4. Runs all 4 integration tests with `RISC0_DEV_MODE=0` (real ZK proofs)
 
-# Run new_fungible_token with RISC0_DEV_MODE=0 for real proof
-RISC0_DEV_MODE=0 lgs program invoke <program_id> new_fungible_token \
-  --args '{"name":"LOGOS","decimals":6,"initial_supply":1000000,"mint_authority_id":[]}'
+**Program ID (standalone deployment):**
+```
+4f0d73b40b59ed05c7a78fba0448975d79406dafc7b12cf8edb0ebfed74778f3
+```
 
-# Cycle counts appear in LEZ logs as:
-#   CU new_fungible_token cycles=NNNNNN
-#   CU mint_tokens cycles=NNNNNN
-#   ... etc.
+### Manual deploy
+
+```bash
+export LEE_WALLET_HOME_DIR=~/.lez-wallet
+mkdir -p $LEE_WALLET_HOME_DIR
+cp ~/lez-node/lez/wallet/configs/debug/wallet_config.json $LEE_WALLET_HOME_DIR/
+
+# In a separate terminal, start the sequencer:
+cd ~/lez-node/lez/sequencer/service
+RISC0_DEV_MODE=0 ~/lez-node/target/release/sequencer_service configs/debug/sequencer_config.json
+
+# Import account and fund it:
+~/lez-node/target/release/wallet account import public \
+    --private-key 7f273098f25b71e6c005a9519f2678da8d1c7f01f6a27778e2d9948abdf901fb
+~/lez-node/target/release/wallet vault claim \
+    --account-id Public/CbgR6tj5kWx5oziiFptM7jMvrQeYY3Mzaao6ciuhSr2r --amount 10000
+
+# Deploy the program:
+~/lez-node/target/release/wallet deploy-program token_authority.bin
 ```
 
 ---
@@ -135,7 +163,7 @@ RFP-001 requires a self-sufficient, agnostic library that:
 
 | Requirement | Implementation |
 |---|---|
-| Single admin PDA | `AdminConfig { admin: Option<[u8;32]> }` stored at `pda=[literal("mint_auth")]` |
+| Single admin account | `AdminConfig { admin: Option<[u8;32]> }` stored in a signer-owned account |
 | Gated access | `require_admin(&config, signer)` — returns `Err(Revoked)` or `Err(Unauthorized)` |
 | Initialize | `initialize_admin(existing_bytes, admin)` — fails if non-empty (already-init guard) |
 | Transfer | `transfer_admin(&config, signer, new_admin)` — signer must be current admin |
@@ -146,13 +174,14 @@ RFP-001 requires a self-sufficient, agnostic library that:
 
 ## CU benchmarks
 
-> To be filled in after deployment on LEZ devnet. See `CONTEXT.md` for instructions.
+Measured with `RISC0_DEV_MODE=0` on AWS c5.2xlarge (8 vCPU / 15 GB RAM).
+The guest emits `CU <instruction> cycles=N` via `log_cycles()` at the end of each handler.
 
 | Instruction | CU (cycles) |
 |---|---|
-| `new_fungible_token` | TBD |
-| `mint_tokens` | TBD |
-| `transfer_tokens` | TBD |
-| `burn_tokens` | TBD |
-| `rotate_authority` | TBD |
-| `revoke_authority` | TBD |
+| `new_fungible_token` | 1 380 |
+| `mint_tokens` | 4 072 |
+| `transfer_tokens` | 2 606 |
+| `burn_tokens` | 2 510 |
+| `rotate_authority` | 3 166 |
+| `revoke_authority` | 2 708 |
