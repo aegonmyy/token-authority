@@ -95,22 +95,22 @@ After `revoke_authority`:
 ## Performance
 
 ### Compute unit benchmarks
-**Status: PENDING VPS**
+**Status: MEASURED**
 
-Measured by reading `CU <instruction> cycles=N` from LEZ logs with
-`RISC0_DEV_MODE=0`. The guest program emits these via `log_cycles()` at the
-end of every instruction.
+Measured via `RISC0_DEV_MODE=0` integration tests on an AWS c5.2xlarge VPS
+(8 vCPU / 15 GB RAM). The guest emits `CU <instruction> cycles=N` via
+`log_cycles()` at the end of every instruction handler.
 
 | Instruction | CU (cycles) | Notes |
 |---|---|---|
-| `new_fungible_token` | TBD | Borsh init × 3 accounts |
-| `mint_tokens` | TBD | `require_admin` + balance arithmetic |
-| `transfer_tokens` | TBD | Two balance updates |
-| `burn_tokens` | TBD | One balance update + supply decrease |
-| `rotate_authority` | TBD | `transfer_admin` + sync `TokenDef` |
-| `revoke_authority` | TBD | `revoke_admin` + sync `TokenDef` |
+| `new_fungible_token` | 1 380 | Borsh init × 3 accounts + admin config |
+| `mint_tokens` | 4 072 | `require_admin` + balance arithmetic × 2 |
+| `transfer_tokens` | 2 606 | Two holding balance updates |
+| `burn_tokens` | 2 510 | One balance update + supply decrease |
+| `rotate_authority` | 3 166 | `transfer_admin` + sync `TokenDef` |
+| `revoke_authority` | 2 708 | `revoke_admin` + sync `TokenDef` |
 
-The cycle logger is already in place; numbers will be filled in after VPS deployment.
+All six instructions measured within a single test run; no retries needed.
 
 ---
 
@@ -178,6 +178,6 @@ Terminal must show `RISC0_DEV_MODE=0` and live cycle count output.
 | CI (sequencer e2e) | ⏳ Partial |
 | Demo script (`scripts/demo.sh`) | ✅ Done |
 | README deployment steps | ✅ Done |
-| CU benchmarks | ⏳ Pending VPS |
+| CU benchmarks | ✅ Done |
 | Deployment + program ID | ⏳ Pending VPS |
 | Video demo | ⏳ Pending VPS |
