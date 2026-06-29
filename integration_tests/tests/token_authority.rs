@@ -1,5 +1,4 @@
 use nssa::{
-    program::Program,
     program_deployment_transaction::{self, ProgramDeploymentTransaction},
     public_transaction, PrivateKey, PublicKey, PublicTransaction, V03State,
 };
