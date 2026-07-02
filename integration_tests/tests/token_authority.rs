@@ -1,8 +1,8 @@
-use nssa::{
+use lee::{
     program_deployment_transaction::{self, ProgramDeploymentTransaction},
     public_transaction, PrivateKey, PublicKey, PublicTransaction, V03State,
 };
-use nssa_core::account::{Account, AccountId, Data, Nonce};
+use lee_core::account::{Account, AccountId, Data, Nonce};
 use token_authority_core::TokenHolding;
 use serde::{Deserialize, Serialize};
 
@@ -10,7 +10,7 @@ use serde::{Deserialize, Serialize};
 
 fn k(seed: u8) -> PrivateKey { PrivateKey::try_new([seed; 32]).expect("valid") }
 
-fn program_id() -> nssa_core::program::ProgramId {
+fn program_id() -> lee_core::program::ProgramId {
     token_authority_methods::TOKEN_AUTHORITY_ID
 }
 

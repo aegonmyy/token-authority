@@ -4,7 +4,7 @@ use spel_framework::prelude::*;
 
 #[cfg(not(test))]
 risc0_zkvm::guest::entry!(main);
-use nssa_core::account::Data;
+use lee_core::account::Data;
 
 use admin_authority::{AdminConfig, AdminError, transfer_admin, revoke_admin, require_admin};
 use token_authority_core::{TokenDef, TokenHolding};
