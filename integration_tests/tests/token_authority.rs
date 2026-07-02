@@ -34,7 +34,7 @@ fn deploy(state: &mut V03State) {
 }
 
 fn base_state() -> V03State {
-    let mut state = V03State::new_with_genesis_accounts(&[], vec![], 0);
+    let mut state = V03State::new();
     deploy(&mut state);
     state
 }
