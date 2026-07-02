@@ -6,8 +6,8 @@
 **Status: SATISFIED**
 
 `new_fungible_token` accepts a `mint_authority_id: Vec<u8>` arg:
-- Empty (`[]`) → `TokenDef.mint_authority = None` (fixed supply from genesis)
-- 32 bytes → `TokenDef.mint_authority = Some([u8;32])` (variable supply)
+- Empty (`[]`) -> `TokenDef.mint_authority = None` (fixed supply from genesis)
+- 32 bytes -> `TokenDef.mint_authority = Some([u8;32])` (variable supply)
 
 The `AdminConfig` account is initialized at the same time via `initialize_admin`.
 
@@ -34,7 +34,7 @@ irreversibly. All subsequent `mint_tokens` calls return `E_REVOKED (1003)`.
 | Example | What it shows |
 |---|---|
 | `examples/src/bin/fixed_supply.rs` | Token with no authority from genesis; verifies mint is rejected |
-| `examples/src/bin/variable_supply.rs` | TEAM mints → TEAM rotates to DAO → DAO mints → DAO revokes → confirms no further minting |
+| `examples/src/bin/variable_supply.rs` | TEAM mints -> TEAM rotates to DAO -> DAO mints -> DAO revokes -> confirms no further minting |
 
 Both run without a RISC-Zero toolchain: `cargo run --bin fixed_supply`.
 
@@ -86,7 +86,7 @@ where one is updated and the other is not.
 
 After `revoke_authority`:
 - `admin_config.admin = None`
-- `require_admin` returns `Err(AdminError::Revoked)` → SPEL error code `1003`
+- `require_admin` returns `Err(AdminError::Revoked)` -> SPEL error code `1003`
 - This path is covered by `fixed_supply_mint_rejected` and
   `variable_supply_full_lifecycle` integration tests (step 7)
 
@@ -120,8 +120,8 @@ All six instructions measured within a single test run; no retries needed.
 **Status: SATISFIED**
 
 **Live on the public LEZ v0.2.0 testnet.** The program is deployed and the full
-mint-authority lifecycle — create → mint → rotate → mint by the rotated
-authority → revoke → post-revoke mint rejected — is confirmed **on-chain** at
+mint-authority lifecycle — create -> mint -> rotate -> mint by the rotated
+authority -> revoke -> post-revoke mint rejected — is confirmed **on-chain** at
 `https://testnet.lez.logos.co/` (LEZ `v0.2.0`, commit `a58fbce2`).
 
 **Program ID:**
@@ -150,7 +150,7 @@ with real RISC-Zero ZK proofs (`RISC0_DEV_MODE=0`):
 | Test | What it covers |
 |---|---|
 | `fixed_supply_mint_rejected` | Zero-authority token: any mint returns E_REVOKED(1003) |
-| `variable_supply_full_lifecycle` | Create → mint → rotate → old rejected → new mints → revoke → post-revoke rejected |
+| `variable_supply_full_lifecycle` | Create -> mint -> rotate -> old rejected -> new mints -> revoke -> post-revoke rejected |
 | `transfer_tokens` | Sender balance decremented, recipient credited |
 | `burn_tokens` | Holder balance and total supply both reduced |
 
@@ -191,20 +191,20 @@ Terminal will show `RISC0_DEV_MODE=0` and live CU cycle output.
 
 | Criterion | Status |
 |---|---|
-| Mint authority at init | ✅ Done |
-| Mint by authority | ✅ Done |
-| Rotate authority (atomic) | ✅ Done |
-| Revoke authority (irreversible) | ✅ Done |
-| Two working examples | ✅ Done |
-| RFP-001 library (`admin_authority`) | ✅ Done |
-| SDK (`token_authority_sdk`) | ✅ Done |
-| IDL | ✅ Done |
-| Deterministic error codes (10/20/30xx) | ✅ Done |
-| Atomic failure semantics | ✅ Done |
-| Integration tests (RISC0_DEV_MODE=0) | ✅ Done |
-| CI green | ✅ Done |
-| Demo script (`scripts/demo.sh`) | ✅ Done |
-| README deployment steps | ✅ Done |
-| CU benchmarks | ✅ Done |
-| Deployed + full lifecycle on **live LEZ v0.2.0 testnet** | ✅ Done |
+| Mint authority at init | Done |
+| Mint by authority | Done |
+| Rotate authority (atomic) | Done |
+| Revoke authority (irreversible) | Done |
+| Two working examples | Done |
+| RFP-001 library (`admin_authority`) | Done |
+| SDK (`token_authority_sdk`) | Done |
+| IDL | Done |
+| Deterministic error codes (10/20/30xx) | Done |
+| Atomic failure semantics | Done |
+| Integration tests (RISC0_DEV_MODE=0) | Done |
+| CI green | Done |
+| Demo script (`scripts/demo.sh`) | Done |
+| README deployment steps | Done |
+| CU benchmarks | Done |
+| Deployed + full lifecycle on **live LEZ v0.2.0 testnet** | Done |
 | Video demo | ⏳ Pending recording |

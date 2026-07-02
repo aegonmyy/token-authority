@@ -68,7 +68,7 @@ token-authority/
 ├── examples/
 │   └── src/bin/
 │       ├── fixed_supply.rs        No authority from creation; confirms mint rejected
-│       └── variable_supply.rs     TEAM mints → rotates to DAO → DAO revokes
+│       └── variable_supply.rs     TEAM mints -> rotates to DAO -> DAO revokes
 │
 ├── methods/
 │   ├── src/lib.rs                 Exposes TOKEN_AUTHORITY_ELF + TOKEN_AUTHORITY_ID
@@ -187,21 +187,16 @@ The script:
 1. Starts the standalone LEZ sequencer on port 3040
 2. Imports a debug keypair and claims genesis balance
 3. Deploys `token_authority.bin` via `wallet deploy-program`
-4. Runs all 4 integration tests with `RISC0_DEV_MODE=0`
-5. Prints a summary box and cleans up the sequencer on exit
+4. Drives the full mint-authority lifecycle through the sequencer at `RISC0_DEV_MODE=0`
+5. Prints a summary and cleans up the sequencer on exit
 
 Expected final output:
 ```
-test result: ok. 4 passed; 0 failed; 0 ignored
+=== 6. mint 100 after revoke -> MUST be rejected (error 1003) ===
+  REJECTED as expected (submitted tx ... did not confirm; guest guard 1003)
 
-╔═══════════════════════════════════════════════════════════════╗
-║  Demo complete                                                ║
-║  fixed_supply_mint_rejected    ✓  (error 1003 as expected)   ║
-║  variable_supply_full_lifecycle ✓  (mint → rotate → revoke)  ║
-║  transfer_tokens               ✓  (sender → recipient)       ║
-║  burn_tokens                   ✓  (supply + balance reduced)  ║
-║  RISC0_DEV_MODE=0  (real ZK proofs)                    ✓     ║
-╚═══════════════════════════════════════════════════════════════╝
+Demo complete. Lifecycle confirmed on the local sequencer:
+  create -> mint -> rotate -> mint(rotated) -> revoke -> post-revoke mint rejected (1003)
 ```
 
 ### Rebuild the guest ELF from source (rare)
@@ -248,8 +243,8 @@ If an account starts in DEFAULT state (no program owner set) and the instruction
 ### `mint_authority_id: Vec<u8>` instead of `Option<[u8;32]>`
 
 The SPEL macro has difficulty deserializing `Option<[u8;32]>` from instruction args. The guest takes a `Vec<u8>` instead:
-- Empty vec → `None` (fixed supply)
-- 32-byte vec → `Some([u8;32])` (authority account id)
+- Empty vec -> `None` (fixed supply)
+- 32-byte vec -> `Some([u8;32])` (authority account id)
 
 The SDK's `NewFungibleTokenArgs::mint_authority_bytes()` handles this conversion on the host side.
 

@@ -41,7 +41,7 @@ fn main() {
 
     let supply = ledger.total_supply();
     assert_eq!(supply, 900_000);
-    println!("\nFinal total supply: {} ✓", supply);
+    println!("\nFinal total supply: {}", supply);
     println!("\nFixed-supply example complete.");
 }
 

@@ -1,6 +1,6 @@
 //! Variable-supply token example: full authority lifecycle.
 //!
-//! TEAM mints → rotates to DAO → DAO mints → DAO revokes → supply locked.
+//! TEAM mints -> rotates to DAO -> DAO mints -> DAO revokes -> supply locked.
 //!
 //! Run with: cargo run --bin variable_supply
 
@@ -36,7 +36,7 @@ fn main() {
 
     ledger.rotate_authority(&TEAM, DAO).expect("rotate_authority failed");
     println!(
-        "\nAuthority rotated → {}",
+        "\nAuthority rotated -> {}",
         authority_label(ledger.token_def().unwrap().mint_authority)
     );
 
@@ -68,7 +68,7 @@ fn main() {
     let final_supply = ledger.total_supply();
     println!("\nFinal total supply: {}", final_supply);
     assert_eq!(final_supply, 50_000_000 + 10_000_000 + 5_000_000 + 20_000_000 - 500_000);
-    println!("Assertion passed ✓");
+    println!("Assertion passed");
 
     println!("\nVariable-supply example complete.");
 }

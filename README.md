@@ -5,7 +5,7 @@
 Extends the LEZ fungible-token model with a fully auditable mint-authority layer built on top of the [RFP-001 admin-authority library](./admin_authority). Supply can be fixed at creation or managed by a rotating authority that can be permanently revoked on-chain.
 
 > **Live on the public LEZ v0.2.0 testnet.** The full mint-authority lifecycle
-> (create → mint → rotate → mint by the rotated authority → revoke → post-revoke
+> (create -> mint -> rotate -> mint by the rotated authority -> revoke -> post-revoke
 > mint rejected) is confirmed **on-chain** at `https://testnet.lez.logos.co/`
 > (LEZ `v0.2.0`, commit `a58fbce2`). Tx hashes + final state:
 > [`docs/testnet-v020-evidence-20260702.md`](docs/testnet-v020-evidence-20260702.md).
@@ -23,7 +23,7 @@ token-authority/
 ├── token_authority_sdk/      Host-side SDK: typed args, PDA seeds, SimulatedLedger
 ├── examples/
 │   ├── fixed_supply.rs       End-to-end: no mint authority from genesis
-│   └── variable_supply.rs    End-to-end: TEAM→DAO authority rotation → revoke
+│   └── variable_supply.rs    End-to-end: TEAM->DAO authority rotation -> revoke
 └── methods/
     └── guest/                SPEL guest program (RISC-Zero ELF, riscv32im target)
         └── src/bin/token_authority.rs
@@ -70,7 +70,7 @@ Account identities are signer-derived (no PDAs); each account key pair controls 
 
 ```bash
 cargo run --bin fixed_supply      # fixed supply from genesis
-cargo run --bin variable_supply   # authority lifecycle: mint → rotate → revoke
+cargo run --bin variable_supply   # authority lifecycle: mint -> rotate -> revoke
 ```
 
 ### Run all tests
@@ -121,7 +121,7 @@ To rebuild from source:
 ```bash
 # From repo root (Docker required):
 cargo risczero build --manifest-path methods/guest/Cargo.toml
-# ELF → methods/guest/target/riscv32im-risc0-zkvm-elf/docker/token_authority.bin
+# ELF -> methods/guest/target/riscv32im-risc0-zkvm-elf/docker/token_authority.bin
 sudo cp methods/guest/target/riscv32im-risc0-zkvm-elf/docker/token_authority.bin token_authority.bin
 ```
 
@@ -136,8 +136,8 @@ The script:
 2. Imports the debug account and claims genesis balance
 3. Deploys `token_authority.bin` to the sequencer — prints the on-chain program ID
 4. Drives the **full mint-authority lifecycle through the sequencer** over the
-   CLI at `RISC0_DEV_MODE=0` (real ZK proofs): create → mint → rotate → mint by
-   the rotated authority → revoke → post-revoke mint **rejected** (error 1003).
+   CLI at `RISC0_DEV_MODE=0` (real ZK proofs): create -> mint -> rotate -> mint by
+   the rotated authority -> revoke -> post-revoke mint **rejected** (error 1003).
    Every step submits a real transaction and prints its tx hash; evidence is also
    written to `demo-lifecycle-evidence.txt`.
 

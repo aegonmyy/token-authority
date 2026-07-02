@@ -6,7 +6,7 @@ use lee_core::account::{Account, AccountId, Data, Nonce};
 use token_authority_core::TokenHolding;
 use serde::{Deserialize, Serialize};
 
-// ── Key fixtures ─────────────────────────────────────────────────────────────
+// Key fixtures
 
 fn k(seed: u8) -> PrivateKey { PrivateKey::try_new([seed; 32]).expect("valid") }
 
@@ -22,7 +22,7 @@ fn id_bytes(key: &PrivateKey) -> Vec<u8> {
     id(key).as_ref().to_vec()
 }
 
-// ── Deployment ───────────────────────────────────────────────────────────────
+// Deployment
 
 fn deploy(state: &mut V03State) {
     let msg = program_deployment_transaction::Message::new(
@@ -51,7 +51,7 @@ fn insert_empty_holding(state: &mut V03State, account: AccountId, def: AccountId
     state.force_insert_account(account, acc);
 }
 
-// ── Instruction enum ─────────────────────────────────────────────────────────
+// Instruction enum
 
 #[derive(Serialize, Deserialize)]
 enum Instruction {
@@ -68,7 +68,7 @@ enum Instruction {
     RevokeAuthority,
 }
 
-// ── Helpers ──────────────────────────────────────────────────────────────────
+// Helpers
 
 fn send(
     state: &mut V03State,
@@ -101,9 +101,9 @@ fn send_err(
         .to_string()
 }
 
-// ── Tests ────────────────────────────────────────────────────────────────────
+// Tests
 
-// Key assignments (each unique seed → unique AccountId):
+// Key assignments (each unique seed -> unique AccountId):
 // 10 = def,  11 = auth_pda,  12 = creator_holding,  13 = creator (signer)
 // 14 = authority,  15 = new_authority,  16 = recipient
 // 20 = def2, 21 = auth2_pda, 22 = creator2_holding, 23 = creator2
@@ -152,7 +152,7 @@ fn fixed_supply_mint_rejected() {
     );
 }
 
-/// Full lifecycle: create → mint → rotate → old rejected → new mints → revoke → post-revoke rejected.
+/// Full lifecycle: create -> mint -> rotate -> old rejected -> new mints -> revoke -> post-revoke rejected.
 #[test]
 fn variable_supply_full_lifecycle() {
     let def_k      = k(20);
