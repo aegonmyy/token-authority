@@ -11,9 +11,9 @@ env:
   RUST_BACKTRACE: "1"
 
 jobs:
-  # ── Core workspace (admin_authority, token_authority_core, sdk, examples) ───
+  # Core workspace: admin_authority, token_authority_core, sdk, examples
   test:
-    name: test (workspace — 44 tests)
+    name: test (workspace - 44 tests)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -47,20 +47,19 @@ jobs:
         run: |
           cargo check --workspace --exclude token-authority-guest 2>&1 | tee /tmp/check.log
           if grep -q "^warning" /tmp/check.log; then
-            echo "Warnings found — failing CI"
+            echo "Warnings found - failing CI"
             exit 1
           fi
 
-  # ── Guest coverage ──────────────────────────────────────────────────────────
-  # The guest is NOT cargo-checked against a stock bare-metal target: its
-  # dependency stack (risc0-zkvm, sha2/crypto-common, spel-framework, lee_core)
-  # needs `std`, provided only by risc0's own riscv32im-risc0-zkvm-elf target
-  # (via the risc0 toolchain), not the stock riscv32im-unknown-none-elf. The
-  # guest is instead covered by (a) the reproducible ProgramId build and (b) the
+  # Guest coverage: the guest is not cargo-checked against a stock bare-metal
+  # target. Its dependency stack (risc0-zkvm, sha2/crypto-common, spel-framework,
+  # lee_core) needs std, provided only by risc0's own riscv32im-risc0-zkvm-elf
+  # target (via the risc0 toolchain), not the stock riscv32im-unknown-none-elf.
+  # The guest is instead covered by the reproducible ProgramId build and by the
   # integration tests below, which run the prebuilt guest ELF through lee's
-  # V03State — the same state machine the LEZ sequencer runs.
+  # V03State (the same state machine the LEZ sequencer runs).
   integration-test:
-    name: integration tests (lee V03State — 4 tests)
+    name: integration tests (lee V03State - 4 tests)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -78,5 +77,5 @@ jobs:
           key: ${{ runner.os }}-cargo-integration-${{ hashFiles('Cargo.lock') }}
           restore-keys: ${{ runner.os }}-cargo-integration-
 
-      - name: cargo test (integration_tests — 4 tests expected)
+      - name: cargo test (integration_tests - 4 tests expected)
         run: cargo test -p integration_tests -- --nocapture

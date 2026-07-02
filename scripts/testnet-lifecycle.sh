@@ -19,11 +19,11 @@
 #                  it for a local sequencer that proves each tx on-box.
 #   REJECT_TIMEOUT - confirmation timeout for the step expected to be rejected
 #                    (default 60). A rejected tx never confirms, so this only
-#                    needs to outlast a couple of blocks — keeps the demo tight.
+#                    needs to outlast a couple of blocks; keeps the demo tight.
 set -euo pipefail
 
 # Feed /dev/null on stdin so the password-protected wallet / spel never block on
-# an interactive "Input password:" prompt (EOF → empty password → proceed).
+# an interactive "Input password:" prompt (EOF gives an empty password).
 exec < /dev/null
 
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -57,7 +57,7 @@ step() {
   # a rejected tx never confirms, so cap the poll so we don't hang forever
   local out; out="$(timeout "${STEP_TO:-${STEP_TIMEOUT:-75}}" "$SPEL" --idl "$IDL" -- "$@" 2>&1 || true)"
   local h; h="$(echo "$out" | grep -oE 'tx_hash: [0-9a-f]{64}' | awk '{print $2}' | head -1)"
-  # Match spel's success line ("Transaction confirmed — …") only; its failure
+  # Match spel's success line ("Transaction confirmed ...") only; its failure
   # line is "Transaction NOT confirmed", so a bare 'confirmed' would false-match.
   if echo "$out" | grep -q 'Transaction confirmed'; then
     echo "  tx: $h  CONFIRMED" | tee -a "$EVID"
