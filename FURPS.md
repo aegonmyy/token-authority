@@ -116,24 +116,34 @@ All six instructions measured within a single test run; no retries needed.
 
 ## Supportability
 
-### Deployed and tested on LEZ sequencer (standalone mode)
+### Deployed and tested on LEZ devnet/testnet
 **Status: SATISFIED**
 
-`scripts/demo.sh`:
-1. Builds the LEZ sequencer and wallet from source (`logos-blockchain/logos-execution-zone`)
-2. Starts the sequencer in standalone mode (no external chain required)
-3. Deploys `token_authority.bin` via `wallet deploy-program`
-4. Runs the 4 nssa integration tests with `RISC0_DEV_MODE=0`
+**Live on the public LEZ v0.2.0 testnet.** The program is deployed and the full
+mint-authority lifecycle — create → mint → rotate → mint by the rotated
+authority → revoke → post-revoke mint rejected — is confirmed **on-chain** at
+`https://testnet.lez.logos.co/` (LEZ `v0.2.0`, commit `a58fbce2`).
 
-**Program ID (standalone):**
+**Program ID:**
 ```
 63a29a4ec2b24402807c319d14e5d9a6bd5b26a49088cb3c6c2c8cd6187d2a60
 ```
 
+Transaction hashes and the final on-chain state (`supply=1800`,
+`authority=None`, holding `1800`; post-revoke mint rejected with supply
+unchanged) are recorded in
+[`docs/testnet-v020-evidence-20260702.md`](docs/testnet-v020-evidence-20260702.md).
+The public testnet is periodically reset; re-produce live evidence on the
+*current* network in one command with `scripts/testnet-lifecycle.sh`.
+
+Offline/standalone reproduction is also supported via `scripts/demo.sh`, which
+builds the sequencer from source, deploys `token_authority.bin`, and runs the
+integration tests at `RISC0_DEV_MODE=0`.
+
 ### End-to-end integration tests against the LEZ sequencer
 **Status: SATISFIED**
 
-4 integration tests in `integration_tests/` use `nssa` (the same execution
+4 integration tests in `integration_tests/` use `lee` (the same execution
 engine that powers the LEZ sequencer) to exercise the full instruction set
 with real RISC-Zero ZK proofs (`RISC0_DEV_MODE=0`):
 
@@ -152,7 +162,7 @@ Run: `RISC0_DEV_MODE=0 cargo test -p integration_tests -- --nocapture`
 `.github/workflows/ci.yml`:
 - `test` — unit + sim tests, both examples, 0-warnings gate
 - `guest-check` — `cargo check` on the riscv32im target
-- `integration-test` — nssa integration tests with `RISC0_DEV_MODE=1`
+- `integration-test` — lee integration tests with `RISC0_DEV_MODE=1`
 
 ### README with deployment steps
 **Status: SATISFIED**
@@ -196,5 +206,5 @@ Terminal will show `RISC0_DEV_MODE=0` and live CU cycle output.
 | Demo script (`scripts/demo.sh`) | ✅ Done |
 | README deployment steps | ✅ Done |
 | CU benchmarks | ✅ Done |
-| Deployment + program ID | ✅ Done |
+| Deployed + full lifecycle on **live LEZ v0.2.0 testnet** | ✅ Done |
 | Video demo | ⏳ Pending recording |

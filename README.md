@@ -4,6 +4,14 @@
 
 Extends the LEZ fungible-token model with a fully auditable mint-authority layer built on top of the [RFP-001 admin-authority library](./admin_authority). Supply can be fixed at creation or managed by a rotating authority that can be permanently revoked on-chain.
 
+> **Live on the public LEZ v0.2.0 testnet.** The full mint-authority lifecycle
+> (create → mint → rotate → mint by the rotated authority → revoke → post-revoke
+> mint rejected) is confirmed **on-chain** at `https://testnet.lez.logos.co/`
+> (LEZ `v0.2.0`, commit `a58fbce2`). Tx hashes + final state:
+> [`docs/testnet-v020-evidence-20260702.md`](docs/testnet-v020-evidence-20260702.md).
+> Re-produce on the current testnet (periodically reset) with
+> `scripts/testnet-lifecycle.sh`.
+
 ---
 
 ## Architecture
@@ -71,7 +79,7 @@ cargo run --bin variable_supply   # authority lifecycle: mint → rotate → rev
 # Unit + simulation tests (no toolchain needed):
 cargo test --workspace --exclude token-authority-guest --exclude integration_tests
 
-# Integration tests (nssa in-process sequencer, RISC0_DEV_MODE=0 = real proofs):
+# Integration tests (lee in-process sequencer, RISC0_DEV_MODE=0 = real proofs):
 RISC0_DEV_MODE=0 cargo test -p integration_tests -- --nocapture
 # 4 tests: fixed-supply mint rejection, full authority lifecycle, transfer, burn
 ```
@@ -129,9 +137,17 @@ The script:
 3. Deploys `token_authority.bin` — prints the on-chain program ID
 4. Runs all 4 integration tests with `RISC0_DEV_MODE=0` (real ZK proofs)
 
-**Program ID (standalone deployment):**
+**Program ID** (deterministic image id — identical on standalone and the live testnet):
 ```
 63a29a4ec2b24402807c319d14e5d9a6bd5b26a49088cb3c6c2c8cd6187d2a60
+```
+
+To exercise the lifecycle against the **live testnet** instead of standalone:
+```bash
+SPEL=vendor/spel-framework/spel-cli/target/release/spel \
+WALLET=<v0.2.0-final wallet> \
+LEE_WALLET_HOME_DIR=<wallet home pointed at testnet.lez.logos.co> \
+./scripts/testnet-lifecycle.sh
 ```
 
 ### Manual deploy

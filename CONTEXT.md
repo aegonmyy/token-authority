@@ -31,6 +31,9 @@ Prize spec: https://github.com/logos-co/lambda-prize/issues/13
 | Demo script (`scripts/demo.sh`) | Done, tested end-to-end |
 | README deployment steps | Done |
 | FURPS.md self-assessment | Done |
+| **Ported to v0.2.0-final (a58fbce2)** | Done — `lee_core` + vendored a58fbce2 spel-framework |
+| **Live LEZ testnet deploy + full lifecycle** | Done — `testnet.lez.logos.co`; see `docs/testnet-v020-evidence-20260702.md` |
+| Testnet lifecycle exerciser (`scripts/testnet-lifecycle.sh`) | Done — reproducible; survives testnet resets |
 | GitHub push | Done — `github.com/aegonmyy/token-authority` |
 | **Video demo** | **Pending — user records this** |
 | **PR to logos-co/lambda-prize** | **Pending — after video** |
@@ -76,7 +79,7 @@ token-authority/
 │
 ├── integration_tests/
 │   └── tests/
-│       └── token_authority.rs     4 nssa integration tests (RISC0_DEV_MODE=0)
+│       └── token_authority.rs     4 lee integration tests (RISC0_DEV_MODE=0)
 │
 └── scripts/
     └── demo.sh                    End-to-end demo: starts sequencer, deploys, tests
@@ -149,7 +152,7 @@ cargo run --bin fixed_supply
 cargo run --bin variable_supply
 ```
 
-### Integration tests (nssa in-process, fast)
+### Integration tests (lee in-process, fast)
 
 ```bash
 RISC0_DEV_MODE=1 cargo test -p integration_tests -- --nocapture
@@ -285,7 +288,7 @@ RISC0_DEV_MODE=0 sequencer_service configs/debug/sequencer_config.json
 ```
 thread 'unnamed' panicked at ... Program error 1003: admin authority has been revoked
 ```
-This appears in `fixed_supply_mint_rejected` and `variable_supply_full_lifecycle`. The test deliberately triggers a rejection and asserts the error code. The panic is the guest signalling an error — nssa catches it and the test checks it. This is correct behaviour.
+This appears in `fixed_supply_mint_rejected` and `variable_supply_full_lifecycle`. The test deliberately triggers a rejection and asserts the error code. The panic is the guest signalling an error — lee catches it and the test checks it. This is correct behaviour.
 
 ```
 thread 'unnamed' panicked at ... Program error 1001: signer is not the admin authority
@@ -344,12 +347,12 @@ Their flow:
 ```toml
 # methods/guest/Cargo.toml
 spel-framework = { git = "https://github.com/logos-blockchain/logos-execution-zone", rev = "73fc462" }
-nssa_core      = { git = "https://github.com/logos-blockchain/logos-execution-zone", tag = "v0.1.2" }
+lee_core      = { git = "https://github.com/logos-blockchain/logos-execution-zone", rev = "a58fbce2" }
 risc0-zkvm     = "=3.0.5"
 
 # integration_tests/Cargo.toml
-nssa           = { git = "https://github.com/logos-blockchain/logos-execution-zone", tag = "v0.1.2" }
-nssa_core      = { git = "https://github.com/logos-blockchain/logos-execution-zone", tag = "v0.1.2" }
+lee           = { git = "https://github.com/logos-blockchain/logos-execution-zone", rev = "a58fbce2" }
+lee_core      = { git = "https://github.com/logos-blockchain/logos-execution-zone", rev = "a58fbce2" }
 ```
 
 If the Logos team updates `logos-execution-zone` and breaks the build, pin to tag `v0.1.2` explicitly.
