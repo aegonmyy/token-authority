@@ -134,8 +134,23 @@ sudo cp methods/guest/target/riscv32im-risc0-zkvm-elf/docker/token_authority.bin
 The script:
 1. Starts a standalone LEZ sequencer (no external chain needed)
 2. Imports the debug account and claims genesis balance
-3. Deploys `token_authority.bin` — prints the on-chain program ID
-4. Runs all 4 integration tests with `RISC0_DEV_MODE=0` (real ZK proofs)
+3. Deploys `token_authority.bin` to the sequencer — prints the on-chain program ID
+4. Drives the **full mint-authority lifecycle through the sequencer** over the
+   CLI at `RISC0_DEV_MODE=0` (real ZK proofs): create → mint → rotate → mint by
+   the rotated authority → revoke → post-revoke mint **rejected** (error 1003).
+   Every step submits a real transaction and prints its tx hash; evidence is also
+   written to `demo-lifecycle-evidence.txt`.
+
+This drives the same lifecycle script used for the public-testnet evidence
+(`scripts/testnet-lifecycle.sh`), pointed at the local sequencer. It additionally
+requires the vendored SPEL CLI:
+
+```bash
+cargo build --release --manifest-path vendor/spel-framework/spel-cli/Cargo.toml
+```
+
+The fast in-process suite (`cargo test -p integration_tests`, which runs in CI)
+is unchanged; `demo.sh` is the on-a-real-sequencer end-to-end demo.
 
 **Program ID** (deterministic image id — identical on standalone and the live testnet):
 ```

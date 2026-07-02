@@ -15,7 +15,16 @@
 #   WALLET - path to the v0.2.0-final wallet binary
 #   LEE_WALLET_HOME_DIR - a wallet home whose sequencer_addr points at the target
 #                         sequencer (local or https://testnet.lez.logos.co/)
+#   STEP_TIMEOUT - per-step confirmation timeout in seconds (default 75); raise
+#                  it for a local sequencer that proves each tx on-box.
+#   REJECT_TIMEOUT - confirmation timeout for the step expected to be rejected
+#                    (default 60). A rejected tx never confirms, so this only
+#                    needs to outlast a couple of blocks — keeps the demo tight.
 set -euo pipefail
+
+# Feed /dev/null on stdin so the password-protected wallet / spel never block on
+# an interactive "Input password:" prompt (EOF → empty password → proceed).
+exec < /dev/null
 
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 IDL="$REPO/idl/token_authority.json"
@@ -46,9 +55,11 @@ step() {
   local label="$1"; shift
   echo "=== $label ===" | tee -a "$EVID"
   # a rejected tx never confirms, so cap the poll so we don't hang forever
-  local out; out="$(timeout 75 "$SPEL" --idl "$IDL" -- "$@" 2>&1 || true)"
+  local out; out="$(timeout "${STEP_TO:-${STEP_TIMEOUT:-75}}" "$SPEL" --idl "$IDL" -- "$@" 2>&1 || true)"
   local h; h="$(echo "$out" | grep -oE 'tx_hash: [0-9a-f]{64}' | awk '{print $2}' | head -1)"
-  if echo "$out" | grep -q 'confirmed'; then
+  # Match spel's success line ("Transaction confirmed — …") only; its failure
+  # line is "Transaction NOT confirmed", so a bare 'confirmed' would false-match.
+  if echo "$out" | grep -q 'Transaction confirmed'; then
     echo "  tx: $h  CONFIRMED" | tee -a "$EVID"
   else
     echo "  REJECTED as expected (submitted tx $h did not confirm; guest guard 1003)" | tee -a "$EVID"
@@ -58,7 +69,8 @@ step() {
 
 : > "$EVID"
 echo "network: $("$WALLET" config get sequencer_addr 2>/dev/null | tail -1)" | tee -a "$EVID"
-echo "program: $("$SPEL" program-id "$REPO/token_authority.bin" --format hex 2>/dev/null | grep -oE '[0-9a-f]{64}' | head -1)" | tee -a "$EVID"
+PROGRAM_ID_HEX="$("$SPEL" -- inspect "$REPO/token_authority.bin" 2>&1 | grep -oE '[0-9a-f]{64}' | head -1 || true)"
+echo "program: ${PROGRAM_ID_HEX:-<run: spel -- inspect token_authority.bin>}" | tee -a "$EVID"
 echo "date:    $(date -u +%FT%TZ)" | tee -a "$EVID"
 echo | tee -a "$EVID"
 
@@ -86,6 +98,7 @@ step "4. mint 300 (auth2 authority) -> supply 1800" mint_tokens \
 step "5. revoke authority (auth2) -> fixed supply" revoke_authority \
   --def-acc "$DEF" --auth-acc "$AUTH" --authority "$NEWAUTH"
 
+STEP_TO="${REJECT_TIMEOUT:-60}" \
 step "6. mint 100 after revoke -> MUST be rejected (error 1003)" mint_tokens \
   --def-acc "$DEF" --auth-acc "$AUTH" --recipient-holding "$CHOLD" --authority "$NEWAUTH" --amount 100
 
