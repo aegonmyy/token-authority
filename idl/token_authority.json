@@ -1,95 +1,209 @@
 {
-  "name": "token_authority",
   "version": "0.1.0",
+  "name": "token_authority",
   "instructions": [
     {
       "name": "new_fungible_token",
       "accounts": [
-        { "name": "token_def",       "isMut": true,  "isSigner": false, "pda": "token_def" },
-        { "name": "mint_auth",       "isMut": true,  "isSigner": false, "pda": "mint_auth" },
-        { "name": "creator_holding", "isMut": true,  "isSigner": false },
-        { "name": "creator",         "isMut": false, "isSigner": true  }
+        {
+          "name": "def_acc",
+          "writable": true,
+          "signer": true,
+          "init": true
+        },
+        {
+          "name": "auth_acc",
+          "writable": true,
+          "signer": true,
+          "init": true
+        },
+        {
+          "name": "creator_holding",
+          "writable": true,
+          "signer": true,
+          "init": true
+        },
+        {
+          "name": "creator",
+          "writable": false,
+          "signer": true,
+          "init": false
+        }
       ],
       "args": [
-        { "name": "name",               "type": "string" },
-        { "name": "decimals",           "type": "u8"     },
-        { "name": "initial_supply",     "type": "u128"   },
-        { "name": "mint_authority_id",  "type": "bytes",
-          "description": "Empty = no authority (fixed supply). 32 bytes = authority public key." }
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "decimals",
+          "type": "u8"
+        },
+        {
+          "name": "initial_supply",
+          "type": "u128"
+        },
+        {
+          "name": "mint_authority_id",
+          "type": {
+            "vec": "u8"
+          }
+        }
       ]
     },
     {
       "name": "mint_tokens",
       "accounts": [
-        { "name": "token_def",         "isMut": true,  "isSigner": false, "pda": "token_def" },
-        { "name": "mint_auth",         "isMut": false, "isSigner": false, "pda": "mint_auth" },
-        { "name": "recipient_holding", "isMut": true,  "isSigner": false },
-        { "name": "authority",         "isMut": false, "isSigner": true  }
+        {
+          "name": "def_acc",
+          "writable": true,
+          "signer": false,
+          "init": false
+        },
+        {
+          "name": "auth_acc",
+          "writable": false,
+          "signer": false,
+          "init": false
+        },
+        {
+          "name": "recipient_holding",
+          "writable": true,
+          "signer": false,
+          "init": false
+        },
+        {
+          "name": "authority",
+          "writable": false,
+          "signer": true,
+          "init": false
+        }
       ],
       "args": [
-        { "name": "amount", "type": "u128" }
+        {
+          "name": "amount",
+          "type": "u128"
+        }
       ]
     },
     {
       "name": "transfer_tokens",
       "accounts": [
-        { "name": "token_def",         "isMut": false, "isSigner": false, "pda": "token_def" },
-        { "name": "sender_holding",    "isMut": true,  "isSigner": false },
-        { "name": "recipient_holding", "isMut": true,  "isSigner": false },
-        { "name": "sender",            "isMut": false, "isSigner": true  }
+        {
+          "name": "def_acc",
+          "writable": false,
+          "signer": false,
+          "init": false
+        },
+        {
+          "name": "sender_holding",
+          "writable": true,
+          "signer": false,
+          "init": false
+        },
+        {
+          "name": "recipient_holding",
+          "writable": true,
+          "signer": false,
+          "init": false
+        },
+        {
+          "name": "sender",
+          "writable": false,
+          "signer": true,
+          "init": false
+        }
       ],
       "args": [
-        { "name": "amount", "type": "u128" }
+        {
+          "name": "amount",
+          "type": "u128"
+        }
       ]
     },
     {
       "name": "burn_tokens",
       "accounts": [
-        { "name": "token_def",      "isMut": true,  "isSigner": false, "pda": "token_def" },
-        { "name": "holder_holding", "isMut": true,  "isSigner": false },
-        { "name": "holder",         "isMut": false, "isSigner": true  }
+        {
+          "name": "def_acc",
+          "writable": true,
+          "signer": false,
+          "init": false
+        },
+        {
+          "name": "holder_holding",
+          "writable": true,
+          "signer": false,
+          "init": false
+        },
+        {
+          "name": "holder",
+          "writable": false,
+          "signer": true,
+          "init": false
+        }
       ],
       "args": [
-        { "name": "amount", "type": "u128" }
+        {
+          "name": "amount",
+          "type": "u128"
+        }
       ]
     },
     {
       "name": "rotate_authority",
       "accounts": [
-        { "name": "token_def", "isMut": true,  "isSigner": false, "pda": "token_def" },
-        { "name": "mint_auth", "isMut": true,  "isSigner": false, "pda": "mint_auth" },
-        { "name": "authority", "isMut": false, "isSigner": true  }
+        {
+          "name": "def_acc",
+          "writable": true,
+          "signer": false,
+          "init": false
+        },
+        {
+          "name": "auth_acc",
+          "writable": true,
+          "signer": false,
+          "init": false
+        },
+        {
+          "name": "authority",
+          "writable": false,
+          "signer": true,
+          "init": false
+        }
       ],
       "args": [
-        { "name": "new_authority_id", "type": "bytes",
-          "description": "32-byte public key of the incoming authority." }
+        {
+          "name": "new_authority_id",
+          "type": {
+            "vec": "u8"
+          }
+        }
       ]
     },
     {
       "name": "revoke_authority",
       "accounts": [
-        { "name": "token_def", "isMut": true,  "isSigner": false, "pda": "token_def" },
-        { "name": "mint_auth", "isMut": true,  "isSigner": false, "pda": "mint_auth" },
-        { "name": "authority", "isMut": false, "isSigner": true  }
+        {
+          "name": "def_acc",
+          "writable": true,
+          "signer": false,
+          "init": false
+        },
+        {
+          "name": "auth_acc",
+          "writable": true,
+          "signer": false,
+          "init": false
+        },
+        {
+          "name": "authority",
+          "writable": false,
+          "signer": true,
+          "init": false
+        }
       ],
-      "args": [],
-      "note": "Irreversible. Sets mint_authority to None. All future mint calls return E_REVOKED (1003)."
+      "args": []
     }
-  ],
-  "errors": [
-    { "code": 1001, "name": "Unauthorized",        "msg": "Signer is not the current admin" },
-    { "code": 1002, "name": "AlreadyInitialized",  "msg": "AdminConfig already has an admin set" },
-    { "code": 1003, "name": "Revoked",             "msg": "Mint authority has been permanently revoked" },
-    { "code": 1004, "name": "NullAuthority",       "msg": "No authority is set (fixed-supply token)" },
-    { "code": 2001, "name": "SupplyOverflow",      "msg": "total_supply would exceed u128::MAX" },
-    { "code": 2002, "name": "BalanceOverflow",     "msg": "Recipient balance would overflow" },
-    { "code": 2003, "name": "BalanceUnderflow",    "msg": "Sender balance is insufficient" },
-    { "code": 2004, "name": "SupplyUnderflow",     "msg": "total_supply would go below zero on burn" },
-    { "code": 2005, "name": "WrongDefinition",     "msg": "Holding references a different token definition" },
-    { "code": 2006, "name": "ZeroAmount",          "msg": "Amount must be greater than zero" },
-    { "code": 2007, "name": "InsufficientFunds",   "msg": "Holder balance is less than amount to burn" },
-    { "code": 3001, "name": "EmptyName",           "msg": "Token name must not be empty" },
-    { "code": 3002, "name": "DecimalsRange",       "msg": "Decimals must be 0–18" },
-    { "code": 3003, "name": "BadAuthorityBytes",   "msg": "mint_authority_id must be empty or exactly 32 bytes" }
   ]
 }

@@ -1,0 +1,3 @@
+[program]
+idl    = "idl/token_authority.json"
+binary = "token_authority.bin"
