@@ -51,17 +51,22 @@ jobs:
             exit 1
           fi
 
-  # ── Guest program compile check (riscv32im — no RISC0 execution) ────────────
-  guest-check:
-    name: cargo check (guest — riscv32im)
+  # ── Guest coverage ──────────────────────────────────────────────────────────
+  # The guest is NOT cargo-checked against a stock bare-metal target: its
+  # dependency stack (risc0-zkvm, sha2/crypto-common, spel-framework, lee_core)
+  # needs `std`, provided only by risc0's own riscv32im-risc0-zkvm-elf target
+  # (via the risc0 toolchain), not the stock riscv32im-unknown-none-elf. The
+  # guest is instead covered by (a) the reproducible ProgramId build and (b) the
+  # integration tests below, which run the prebuilt guest ELF through lee's
+  # V03State — the same state machine the LEZ sequencer runs.
+  integration-test:
+    name: integration tests (lee V03State — 4 tests)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install Rust stable + riscv32im target
+      - name: Install Rust stable
         uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: riscv32im-unknown-none-elf
 
       - name: Cache cargo
         uses: actions/cache@v4
@@ -69,10 +74,9 @@ jobs:
           path: |
             ~/.cargo/registry
             ~/.cargo/git
-            methods/guest/target
-          key: ${{ runner.os }}-guest-${{ hashFiles('methods/guest/Cargo.lock') }}
-          restore-keys: ${{ runner.os }}-guest-
+            target
+          key: ${{ runner.os }}-cargo-integration-${{ hashFiles('Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-integration-
 
-      - name: cargo check (guest)
-        working-directory: methods/guest
-        run: cargo check --target riscv32im-unknown-none-elf
+      - name: cargo test (integration_tests — 4 tests expected)
+        run: cargo test -p integration_tests -- --nocapture
