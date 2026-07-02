@@ -130,18 +130,85 @@ demonstrate the flow.
 
 1. From your PC, screen-record the terminal window **with microphone** — OBS
    Studio, or Windows **Win+G** Game Bar.
-2. Start recording, then run the two-pane demo above, narrating these beats:
-   - **What/why:** a mint-authority model for LEZ tokens — variable supply,
-     rotation, revoke-to-fixed — on the RFP-001 `admin_authority` library.
-   - **Architecture:** `admin_authority` → `token_authority_core` → SPEL guest;
-     deterministic ProgramId `63a29a4e…`.
-   - **Key decisions:** authority guard runs *before* any state change →
-     deterministic `1003` on post-revoke mint; signer-derived accounts (no PDAs).
-   - **Flow (point at the screen):** create → mint → rotate → mint by the
-     *rotated* authority (proves rotation) → revoke → post-revoke mint rejected.
-     Call out `RISC0_DEV_MODE=0` and the live `R0VM` proof lines on the left.
+2. Start recording, then run the two-pane demo above and **read the narration
+   below** — talk *through* each proof pause; the `…confirmed` lands as you finish.
 3. Stop recording → upload to YouTube (unlisted is fine) → paste the link into
    `solutions/LP-0013.md` (the Video section is stubbed and waiting).
+
+### Narration — read aloud
+
+Cues in *italics* tell you where you are on screen; the plain text is what you
+say. Numbers are written the way you'd speak them.
+
+***[As it's starting up]***
+"Alright, so this is my submission for LP-0013 — it adds a mint-authority model
+to the LEZ token program. The idea's pretty simple: whoever creates a token gets
+to control its supply. They can mint more, they can hand that control to somebody
+else, or they can give it up completely — and once they give it up, the supply's
+locked forever. That last part is what lets you make a genuinely fixed-supply
+token."
+
+***[During the setup / deploy banners — the `63a29a4e` line]***
+"The way it's built, there are three layers. At the bottom there's a small
+admin-authority library — that's the RFP-001 piece — and it's completely
+standalone, it doesn't depend on anything LEZ-specific, so you could drop it into
+any project. On top of that there's a types layer for the token, and then the
+actual on-chain program that ties them together. And you can see it deploying
+right now — that program ID, the 63a29a4e one, comes out of the source
+deterministically, so anyone who builds it themselves gets the exact same ID."
+
+***[Point at the `RISC0_DEV_MODE=0` line]***
+"One thing I want to call out before we get going — see up here, RISC0 dev-mode
+is set to zero. That means these are real zero-knowledge proofs; there's no
+dev-mode shortcut faking them. So every step is going to pause for maybe thirty
+seconds to a minute, and that pause is the proof actually being generated. Over
+on the left you can watch the cycle counts come through as each one proves —
+that's the real work happening."
+
+***[Step 1 — create, during the pause]***
+"Okay, first step, we're creating a brand-new token. I'm calling it AUTHDEMO,
+starting it at a supply of a thousand, and right at creation the mint authority
+gets set to my key, the creator. So it's working on it now… generating the
+proof… and there it goes — confirmed on chain."
+
+***[Step 2 — mint 500]***
+"Now that I'm the authority, I can mint. So here I'm minting another five hundred,
+which takes the supply from a thousand up to fifteen hundred. And the key thing
+is, only the current authority is allowed to do this — the program checks that
+before it changes anything. Give it a second to prove… and confirmed."
+
+***[Step 3 — rotate]***
+"Here's where it gets interesting. Instead of holding onto control, I'm going to
+rotate the authority over to a second key — I'll call it auth-two. It's an atomic
+hand-off, so the moment this lands, my original key can't mint anymore — only the
+new one can. Proving… and confirmed."
+
+***[Step 4 — mint by auth-two]***
+"And to actually show that the rotation worked, now the *new* authority, auth-two,
+mints three hundred — that takes us up to eighteen hundred. If the rotation hadn't
+really taken effect, this would get rejected. But… there it is, confirmed. So the
+new key genuinely has control now."
+
+***[Step 5 — revoke]***
+"Next, auth-two permanently revokes the authority — basically sets it to nobody.
+And this one's a one-way door. Once it's revoked, the supply is fixed at eighteen
+hundred forever; there's no key anywhere that can ever mint again. Proving…
+confirmed."
+
+***[Step 6 — the rejection, longer pause]***
+"Alright, this last step is really the whole point. I'm going to try to mint a
+hundred more tokens *after* the authority's been revoked — and this has to fail.
+The program hits the guard, sees there's no authority left, and rejects it with
+error one-thousand-three. And you can see the sequencer just skips it — it never
+confirms — so the supply doesn't move at all."
+
+***[Wrap — final state on screen]***
+"And there's the final state, read straight off the chain — supply's still
+eighteen hundred, authority is None. That failed mint didn't change a thing. So
+that's the whole lifecycle: create it, mint, hand off control, revoke, and once
+it's revoked the supply is genuinely locked. And all of it ran against a real
+local sequencer with real proofs. The library, the SDK, the examples, the IDL —
+it's all in the repo. Thanks for watching."
 
 ---
 
