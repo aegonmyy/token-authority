@@ -131,7 +131,7 @@ The script:
 
 **Program ID (standalone deployment):**
 ```
-4f0d73b40b59ed05c7a78fba0448975d79406dafc7b12cf8edb0ebfed74778f3
+63a29a4ec2b24402807c319d14e5d9a6bd5b26a49088cb3c6c2c8cd6187d2a60
 ```
 
 ### Manual deploy
