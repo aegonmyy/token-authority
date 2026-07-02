@@ -24,7 +24,7 @@ Prize spec: https://github.com/logos-co/lambda-prize/issues/13
 | Pre-built guest ELF (`token_authority.bin`) | Done, committed |
 | `token_authority_sdk` host SDK | Done |
 | Two runnable examples | Done |
-| IDL (`idl/token_authority.json`) | Done |
+| IDL (`idl/token_authority.idl.json`) | Done |
 | CI (`.github/workflows/ci.yml`) | Done, green |
 | 4 integration tests, `RISC0_DEV_MODE=0` | Done, all pass |
 | CU benchmarks (all 6 instructions) | Done, in README + FURPS.md |
@@ -50,7 +50,7 @@ token-authority/
 ├── Cargo.toml                     workspace root
 ├── token_authority.bin            pre-built guest ELF (495 KB) — do not delete
 ├── idl/
-│   └── token_authority.json       IDL: 6 instructions, 14 error codes
+│   └── token_authority.idl.json  IDL: 6 instructions, 14 error codes
 │
 ├── admin_authority/               RFP-001 mint-authority primitive
 │   └── src/lib.rs                 AdminConfig, require_admin, initialize/transfer/revoke

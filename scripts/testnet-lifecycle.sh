@@ -27,7 +27,7 @@ set -euo pipefail
 exec < /dev/null
 
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-IDL="$REPO/idl/token_authority.json"
+IDL="$REPO/idl/token_authority.idl.json"
 SPEL="${SPEL:?set SPEL to the spel CLI binary}"
 WALLET="${WALLET:?set WALLET to the wallet binary}"
 : "${LEE_WALLET_HOME_DIR:?set LEE_WALLET_HOME_DIR to a configured wallet home}"
