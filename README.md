@@ -12,6 +12,12 @@ Extends the LEZ fungible-token model with a fully auditable mint-authority layer
 > Re-produce on the current testnet (periodically reset) with
 > `scripts/testnet-lifecycle.sh`.
 
+## Demo video
+
+Narrated end-to-end walkthrough (architecture, key decisions, and the full
+lifecycle with terminal output including proof generation at `RISC0_DEV_MODE=0`):
+**https://youtu.be/zyPMxCXMFIQ**
+
 ---
 
 ## Architecture

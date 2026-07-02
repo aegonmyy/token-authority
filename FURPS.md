@@ -179,11 +179,11 @@ program, and runs all 4 integration tests with `RISC0_DEV_MODE=0`. Verified
 working on AWS c5.2xlarge running Ubuntu 24.04.
 
 ### Video demo
-**Status: PENDING RECORDING**
+**Status: RECORDED** — https://youtu.be/zyPMxCXMFIQ
 
-Will narrate: authority model design decisions, RFP-001 compliance, the
+Narrates: authority model design decisions, RFP-001 compliance, the
 fixed-supply vs. variable-supply flows, and the rotation/revocation atomicity.
-Terminal will show `RISC0_DEV_MODE=0` and live CU cycle output.
+Terminal shows `RISC0_DEV_MODE=0` and live CU cycle output.
 
 ---
 
@@ -207,4 +207,4 @@ Terminal will show `RISC0_DEV_MODE=0` and live CU cycle output.
 | README deployment steps | Done |
 | CU benchmarks | Done |
 | Deployed + full lifecycle on **live LEZ v0.2.0 testnet** | Done |
-| Video demo | ⏳ Pending recording |
+| Video demo | Done |
